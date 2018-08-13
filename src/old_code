@@ -1,0 +1,78 @@
+    void _realMutateIndividual(Individual individual) {
+        for (int j = 0; j < individual.real.length; j++) {
+            if (RandomNumberGenerator.randomperc() <= optimizationProblem.getRealMutationProbability()) {
+                // Get the specs object of that real variable
+                OptimizationProblem.RealVariableSpecs specs = null;
+                int realVarIndex = -1;
+                for (int k = 0; k < optimizationProblem.variablesSpecs.length; k++) {
+                    if (optimizationProblem.variablesSpecs[k] instanceof OptimizationProblem.RealVariableSpecs) {
+                        realVarIndex++;
+                        if (realVarIndex == k) {
+                            specs = (OptimizationProblem.RealVariableSpecs) optimizationProblem.variablesSpecs[j];
+                        }
+                    }
+                }
+                double y = individual.real[j];
+                originalY.add(y);
+                double yl = specs.getMinValue();
+                double yu = specs.getMaxValue();
+                double rnd = RandomNumberGenerator.randomperc();
+                double mut_pow = 1.0 / (optimizationProblem.getRealMutationDistIndex() + 1.0);
+                double sigma;
+                if (rnd <= 0.5) {
+                    sigma = Math.pow(2 * rnd, mut_pow) - 1;
+                    y += sigma * (y - yl);
+                } else {
+                    sigma = 1 - Math.pow(2 * (1 - rnd), mut_pow);
+                    y += sigma * (yu - y);
+                }
+                if (y < yl) {
+                    y = yl;
+                }
+                if (y > yu) {
+                    y = yu;
+                }
+                individual.real[j] = y;
+                newY.add(y);
+            }
+        }
+    }
+
+    @Override
+    public Individual[] getOffspringPopulation(Individual[] oldPopulation) throws EvaluationException {
+        Individual[] newPopulation = new Individual[optimizationProblem.getPopulationSize()];
+        int[] a1 = new int[optimizationProblem.getPopulationSize()];
+        int[] a2 = new int[optimizationProblem.getPopulationSize()];
+        int temp;
+        int i;
+        int rand;
+        Individual parent1, parent2;
+        IndividualsSet childrenSet;
+        for (i = 0; i < optimizationProblem.getPopulationSize(); i++) {
+            a1[i] = a2[i] = i;
+        }
+        for (i = 0; i < optimizationProblem.getPopulationSize(); i++) {
+            rand = RandomNumberGenerator.rnd(i, optimizationProblem.getPopulationSize() - 1);
+            temp = a1[rand];
+            a1[rand] = a1[i];
+            a1[i] = temp;
+            rand = RandomNumberGenerator.rnd(i, optimizationProblem.getPopulationSize() - 1);
+            temp = a2[rand];
+            a2[rand] = a2[i];
+            a2[i] = temp;
+        }
+        for (i = 0; i < optimizationProblem.getPopulationSize(); i += 4) {
+            parent1 = tournamentSelect(new IndividualsSet(oldPopulation[a1[i]], oldPopulation[a1[i + 1]]));
+            parent2 = tournamentSelect(new IndividualsSet(oldPopulation[a1[i + 2]], oldPopulation[a1[i + 3]]));
+            childrenSet = crossover(new IndividualsSet(parent1, parent2));
+            newPopulation[i] = childrenSet.getIndividual1();
+            newPopulation[i + 1] = childrenSet.getIndividual2();
+
+            parent1 = tournamentSelect(new IndividualsSet(oldPopulation[a2[i]], oldPopulation[a2[i + 1]]));
+            parent2 = tournamentSelect(new IndividualsSet(oldPopulation[a2[i + 2]], oldPopulation[a2[i + 3]]));
+            childrenSet = crossover(new IndividualsSet(parent1, parent2));
+            newPopulation[i + 2] = childrenSet.getIndividual1();
+            newPopulation[i + 3] = childrenSet.getIndividual2();
+        }
+        return newPopulation;
+    }

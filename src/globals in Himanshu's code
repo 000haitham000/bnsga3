@@ -1,0 +1,5 @@
+* The following globals will cause side effects unless they are boxed:
+remaining
+limiting_front
+final_pop_size
+selected_pop_size

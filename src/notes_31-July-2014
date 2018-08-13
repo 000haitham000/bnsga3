@@ -1,0 +1,5 @@
+* In the selection:
+If two solutions belong to the same reference direction check only the non-domination (Discard the distance-from-direction check).
+
+* Additional Problem:
+DTLZ1 & 2 for 3 objectives

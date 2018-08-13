@@ -1,0 +1,7 @@
+* In tournament selection:
+Testing the new algorithm but instead of using head to head domination 
+comparison, I used rank information. This slightly enhanced the hypervolume
+value in ZDT1 (from 0.6361234 to 0.6365682). It also enhanced hypervolume. The
+results however are still a bit lower than NSGA2. (N.B. number of reference
+points is still equal to the population size).
+

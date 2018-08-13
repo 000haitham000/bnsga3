@@ -1,0 +1,12 @@
+Reference points code has to be changed (it should generate only one reference point)
+NSGA3 code should work fine through all its phases with only one reference direction.
+Remove duplicates starting from the last front to the first front given that the whole size of the merged population stays >= N(population size)
+Constrained: G01, G04, G06
+Un-Constrained: Ellipsoidal, Schwefel, Rosenbrock (20 variables) (All F* = 0, use 10^-6 accuracy)
+-------------------------------------
+
+* getInitialIdealPoint(...)
+
+Although it does not take into account the possibility that the first solution
+can be infeasible, this is not a problem, because it is only applied on arrays
+of feasible solutions.

@@ -1,0 +1,47 @@
+* All for 2 objectives:
+ZDT 1-2-3-4-6 & DTLZ 1-2-3-4 popsize = 50-(100) (DONE)
+Constrained problems: from the book CTP (NOT DONE but replaced with the welded beam and the pressure vessel problem)
+WFG problems (NOT DONE)
+
+* Metrics used:
+Hyper volume + IGD + GD (DONE and the igd bug is fixed in both NSGA-II and NSGA-III)
+
+* Conference Paper:
+Just the bi-objective comparison between NSGA 2 & 3 (DONE)
+Present results from both algorithms on Test problems (ZTD 1-4,6+some constrained problems)
+Try some basic fixes (ZTD 1,4):
+a-Add niching based on reference directions during selection + with the same direction select one point (the better out of two)
+b-Add non-domination + niching(the same as previous) during selection
+c-Add niching for constrained problems (beside the non-domination that is already there)
+c-wrap up with a conclusion & future suggestion
+
+* Plots for the conference paper (pick median runs based on hypervolume):
+1-The avg. # of population members per reference direction per each generation for NSGA-III (ZDT-1,4)
+2-Number of points in Pt+1 coming from Qt per generation for both algorithms (ZDT-1,4) (use the same initial population)
+
+* Journal Paper:
+Add the 1 objective extension (modification: ratio population_size/n_ref_points)
+If the ratio is greater than 2 we SURELY need selection, if it is ONE we SURELY do NOT need selection. In between values need more investigation.
+
+Check increasing the ratio up to 1.5 with crowding distance based
+
+************************************** MY NOTES **************************************
+Something is going wrong from population(51) to population(52) (3:50 PM - 16 Nov 2013)
+
+*************** PAPER ***************
+Add a column for eta_C = 5 between Zero and 10 (NOT DONE)
+"Boldify" the better values in Table 2 (DONE)
+Label eta_C axis (NOT DONE)
+In the first ten figures: Increase the size of the Labels eta_C & eta_M (and the numbers also if possible) (NOT DONE)
+
+Title: "Comparative Evaluations of NSGA-II and NSGA-III for Bi-Objective Problems"
+
+* Paper related tasks (due date 20th January):
+    Abstract (Dr.Deb)
+    Introduction (Haitham) motivation and what is done
+    NSGA-III Procedure (Dr.Deb)
+    Simulation Results (Haitham): Add the welded beam problem + Knapsack
+        Test Problems
+        Results & Discussion
+    Conclusion and Future Works (Haitham) : Returning back some reproduction method, constraints, compare with MOEA/D, single-objective, mutipopulation concept
+    References (Haitham)

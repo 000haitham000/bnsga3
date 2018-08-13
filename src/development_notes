@@ -1,0 +1,18 @@
+-----------------------------------------------------------
+For any problem now the code needs both an XML file and a class. The presence of the class is very useful for speeding up the computations, 
+however, it should be elective. This can be done by specifying the three following things in the XML file:
+1 - Pareto Front (for calculating GD & IGD)
+2 - Ideal Point (for HV normalization)
+3 - Reference Point (for HV normalization)
+-----------------------------------------------------------
+Normalizing constraints should be checked (DONE - see the following comment)
+The code does not do any constraint normalization. This is the responsibility 
+of the user to provide an already constraint-normalized problem to the
+algorithms. This is valid for both Himanshu's code (C code) and my code (Java
+code).
+Note: the welded beam problem is normalized while the pressure vessel is not,
+but it is worth noting that the differences in violation magnitudes in the 
+pressure vessel problem are not big (from one constraint to the other), while
+in the welded beam problem, the differences are huge (so the normalization is
+much more important in this case).
+-----------------------------------------------------------

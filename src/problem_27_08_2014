@@ -1,0 +1,6 @@
+**The problem is that there is a huge difference in the results of my Java implementation and the C implementation when it comes to NSGA-II.
+*Selection Fix: If we are to select one of two individuals, the one in the better (smaller value) front is selected, instead of checking the dominance between these two only.
+Notice that one individual can be in rank 1, while the other is in rank two, and even though non of them dominates the other, but the second individual is actually dominated
+by another first front individual.
+
+THE SAME NEEDS TO BE DONE FOR ALL THE OTHER ALGORITHMS (NSGA-III, EXT-NSGA-III and MOD-EXT-NSGA-III)

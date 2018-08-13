@@ -1,0 +1,160 @@
+    public Individual[] startProposed_NSGA_X_2() throws EvaluationException, FileNotFoundException, DoubleAssignmentException, IOException {
+        Individual[] finalPopulation = null;
+        List<ReferenceDirection> referenceDirections = getReferenceDirections(optimizationProblem.getSteps());
+        ReferenceDirection[] referenceDirectionsArr = new ReferenceDirection[referenceDirections.size()];
+        referenceDirections.toArray(referenceDirectionsArr);
+        if (DEBUG_ALL || DEBUG_REFERENCE_DIRECTIONS) {
+            displayReferenceDirections("Reference Directions", referenceDirections);
+        }
+        Individual[] parentPopulation = generateInitialPopulation();
+        if (DEBUG_ALL || DEBUG_POPULATIONS) {
+            InputOutput.displayPopulation(optimizationProblem, "0", parentPopulation);
+        }
+        List<List<Individual>> initialFronts = assign_rank(parentPopulation);
+        if (DEBUG_ALL || DEBUG_RANKING) {
+            displayRanks("0", parentPopulation);
+        }
+
+        //Individual[] onlyFeasibleSolutions = getFeasibleSolutions(parentPopulation);
+
+        double[] idealPoint = null;
+        //if (onlyFeasibleSolutions.length != 0) {
+        idealPoint = getInitialIdealPoint(/*onlyFeasibleSolutions*/parentPopulation);
+        if (DEBUG_ALL || DEBUG_IDEAL_POINT) {
+            displayIdealPoint("0", idealPoint);
+        }
+        translate(/*onlyFeasibleSolutions*/parentPopulation, idealPoint);
+        //} else {
+        //    idealPoint = getDefaultIdealPoint();
+        //}
+
+        Individual[] extremePoints = null;
+        double[] prevIdealPoint = new double[optimizationProblem.objectives.length];
+        extremePoints = getExtremePoints(/*onlyFeasibleSolutions*/parentPopulation, extremePoints, idealPoint, prevIdealPoint);
+        double[] intercepts = getIntercepts(extremePoints, /*onlyFeasibleSolutions*/ parentPopulation);
+        if (DEBUG_ALL || DEBUG_INTERCEPTS) {
+            displayIntercepts("Initial Population Intercepts", intercepts);
+        }
+
+        // Reset obj. values to the pre-translation values values
+        for (Individual individual : /*onlyFeasibleSolutions*/ parentPopulation) {
+            individualEvaluator.updateIndividualObjectivesAndConstraints(optimizationProblem, individual);
+        }
+        for (int i = 0; i < optimizationProblem.getGenerationsCount(); i++) {
+            displayGenerationCount(i);
+            // Create the offspring (tournament selection & crossover)
+            Individual[] offspringPopulation = getOffspringPopulationProposed(parentPopulation);
+            // Mutation (binary & real)
+            mutate(offspringPopulation);
+            // Update the objective values & constraints violation of these offspring
+            for (Individual individual : offspringPopulation) {
+                individualEvaluator.updateIndividualObjectivesAndConstraints(optimizationProblem, individual);
+            }
+            if (DEBUG_ALL || DEBUG_POPULATIONS) {
+                InputOutput.displayPopulation(optimizationProblem, i + "-offspring", offspringPopulation);
+            }
+            Individual[] mergedPopulation =
+                    merge(parentPopulation, offspringPopulation);
+            if (DEBUG_ALL || DEBUG_POPULATIONS) {
+                InputOutput.displayPopulation(optimizationProblem, String.format("%d-population+%d-offspring", i, i), mergedPopulation);
+            }
+            List<List<Individual>> fronts = assign_rank(mergedPopulation);
+            if (DEBUG_ALL || DEBUG_RANKING) {
+                displayRanks(String.format("%d-population+%d-offspring", i, i), mergedPopulation);
+            }
+            prevIdealPoint = idealPoint;
+            idealPoint = getUpdatedIdealPoint(mergedPopulation, idealPoint);
+            if (DEBUG_ALL || DEBUG_IDEAL_POINT) {
+                displayIdealPoint(String.format("Ideal Point(merged population)"), idealPoint);
+            }
+            translate(mergedPopulation, idealPoint);
+            if (DEBUG_ALL || DEBUG_TRANSLATION) {
+                displayPopulationObjectiveSpace(String.format("After Translation (megred population)"), mergedPopulation);
+            }
+            // Count feasible solutions
+            int feasibleCount = 0;
+            for (Individual individual : mergedPopulation) {
+                if (individual.isFeasible()) {
+                    feasibleCount++;
+                }
+            }
+            // Get reamining individuals
+            int remainingIndividualsCount = getRemainingCount(fronts);
+            int limitingFrontIndex = getLimitingFrontIndex(fronts);
+            if (feasibleCount > optimizationProblem.getPopulationSize()) {
+                Individual[] feasibleCandidates = getFeasibleIndividuals(mergedPopulation);
+                extremePoints = getExtremePoints(feasibleCandidates, extremePoints, idealPoint, prevIdealPoint);
+                if (DEBUG_ALL || DEBUG_INTERCEPTS) {
+                    displayExtremePoints("Merged Population Extreme Points", extremePoints);
+                }
+                intercepts = getIntercepts(extremePoints, feasibleCandidates);
+                if (DEBUG_ALL || DEBUG_INTERCEPTS) {
+                    displayIntercepts("Merged Population Intercepts", intercepts);
+                }
+                //normalize(candidates, idealPoint, intercepts);
+                double[][] distancesMatrix = associate(feasibleCandidates, referenceDirections, intercepts);
+                if (DEBUG_ALL || DEBUG_ASSOCIATION) {
+                    displayAssociationResluts("Merged Population", feasibleCandidates);
+                }
+                // Niching
+                Individual[] lastFrontSubset = ProposedCrowdingMeasure.proposedNiching(optimizationProblem, fronts, referenceDirectionsArr, remainingIndividualsCount, distancesMatrix);
+                if (DEBUG_ALL) {
+                    System.out.println("---------------");
+                    System.out.println("Niching Results");
+                    System.out.println("---------------");
+                    for (Individual individual : lastFrontSubset) {
+                        System.out.println(individual.getShortVariableSpace());
+                    }
+                }
+                // Refill Population
+                reFillPopulation(parentPopulation, mergedPopulation, lastFrontSubset, limitingFrontIndex);
+            } else {
+                //reFillPopulation(parentPopulation, mergedPopulation, limitingFrontIndex);
+                reFillPopulation(parentPopulation, fronts);
+            }
+            // Update the values of the objective functions for the next iteration
+            for (Individual individual : parentPopulation) {
+                individualEvaluator.updateIndividualObjectivesAndConstraints(optimizationProblem, individual);
+            }
+
+            String generationsDumpOutputDir = "d:/generations-snapshots/PROPOSED/";
+            File outputDir = new File(generationsDumpOutputDir);
+            if (!outputDir.exists()) {
+                outputDir.mkdirs();
+            }
+            String generationOutputFileName = String.format(
+                    "%s-G(%03d)-P(%03d)-generation(%03d).dat",
+                    optimizationProblem.getProblemID(),
+                    optimizationProblem.getGenerationsCount(),
+                    optimizationProblem.getPopulationSize(),
+                    (i + 1));
+            dumpCurrentGeneration_proposed(
+                    generationsDumpOutputDir + generationOutputFileName,
+                    referenceDirections,
+                    fronts,
+                    individualEvaluator);
+
+            if (DEBUG_ALL || DEBUG_POPULATIONS) {
+                System.out.format("--------------------------------------%n");
+                System.out.format("Final Population After Generation(%d)%n", i);
+                System.out.format("--------------------------------------%n");
+                InputOutput.displayPopulation(optimizationProblem, String.valueOf(i + 1), parentPopulation);
+            }
+            if (i == optimizationProblem.getGenerationsCount() - 1) {
+                finalPopulation = removeDominatedIndividuals(parentPopulation);
+                System.out.format("----------------%n");
+                System.out.format("Final Population%n", i);
+                System.out.format("----------------%n");
+                InputOutput.displayPopulation(optimizationProblem, String.valueOf(i + 1), parentPopulation);
+                InputOutput.displayPopulationUndecoratedObjectiveSpace(optimizationProblem, "Final Population Obj. Space", parentPopulation);
+                double minObj1 = getMinObjective(parentPopulation, 0);
+                double maxObj1 = getMaxObjective(parentPopulation, 0);
+                double minObj2 = getMinObjective(parentPopulation, 1);
+                double maxObj2 = getMaxObjective(parentPopulation, 1);
+                System.out.format("Objective-1 (MIN = %-15.3f, MIN = %-15.3f)%n", minObj1, maxObj1);
+                System.out.format("Objective-2 (MIN = %-15.3f, MIN = %-15.3f)%n", minObj2, maxObj2);
+            }
+        }
+        return finalPopulation;
+    }
+    

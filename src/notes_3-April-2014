@@ -1,0 +1,6 @@
+X-NSGA-III might seem to throw an exception in constrained problems, because
+tournament selection uses reference directions associations which cannot be
+calculated for constraints violating individuals. However this is not a real
+problem because X-NSGA-III uses this information only when the two solutions
+under investigation are feasible. (needs to be confirmed with real experiments
+i.e. runs))
