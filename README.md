@@ -1,4 +1,4 @@
-EvoLib Version 2.0.0 - 8/8/2018
+EvoLib Version 1.0.0 - 8/13/2018
 ---------------------------------
 EvoLib is an open source implementation of NSGA-II, Unified NSGA-III
 (U-NSGA-III) and Balanced NSGA-III (B-NSGA-III).
@@ -20,6 +20,8 @@ DEPENDENCIES
 ------------
 (1) Tx2Ex: An open source mathematical expressions parser (Apache L2 License)
 (2) Apache Commons Lang3 (Apache L2 License)
+(3) A collection of MATLAB generated JAR files used for local search in
+different problems (found under LIB/).
 
 FEATURES
 --------
